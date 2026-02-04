@@ -143,120 +143,128 @@
 </head>
 
 <body>
-  <div class="veil"></div>
-  <div class="fx"></div>
-
   <div class="wrap">
-    <div class="term" role="region" aria-label="Bisan Exchange Terminal">
-      <div class="bar">
-        <div class="dots">
-          <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    <div class="card">
+      <div class="topbar">
+        <div class="left">
+          <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+          <div><strong>BISAN EXCHANGE</strong> / MARKET NODE</div>
         </div>
-        <div class="title">Bisan Exchange — backchannel</div>
-        <div class="title muted">node: market-relay</div>
+        <div class="sig">ELITE SKYWAY RELAY · ACTIVE</div>
       </div>
 
-      <div class="screen" id="screen" aria-live="polite"></div>
+      <div class="terminal">
+        <div class="meta">
+          <div><b>NODE</b> MX-LB/DOWNTOWN</div>
+          <div><b>CHANNEL</b> INVENTORY</div>
+          <div><b>SEC</b> COMPLIANCE-LAYER ON</div>
+          <div><b>TIME</b> <span id="clock"></span></div>
+        </div>
+
+        <div class="screen">
+          <div class="log" id="log"></div>
+
+          <div class="statusrow">
+            <div id="status">STATUS: INITIALIZING…</div>
+            <div class="bars" aria-hidden="true">
+              <div class="bar" id="b1"></div>
+              <div class="bar" id="b2"></div>
+              <div class="bar" id="b3"></div>
+              <div class="bar" id="b4"></div>
+              <div class="bar" id="b5"></div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div class="ticker">
-        <span id="tickerText">
-          TEMPORARY DISCONNECT // ERROR: NX-41A7 // RELAY HANDSHAKE FAILED // RETRY WINDOW: 00:13 // DO NOT REFRESH //
-        </span>
+        <span id="crawl">TEMPORARY DISCONNECT · ERROR: NX-7C11 · RETRYING HANDSHAKE · MARKET NODE UNRESPONSIVE</span>
       </div>
+    </div>
+
+    <div class="footer">
+      <div>© BISAN EXCHANGE · UNLISTED ROUTE</div>
+      <div>IF YOU ARE SEEING THIS PAGE: CONNECTION FAILED.</div>
     </div>
   </div>
 
-  <script>
-    /**
-     * BACKDOOR / FUTURE-TECH TERMINAL
-     * - slower typing
-     * - small pauses for menace
-     * - optional “glitch” flicker
-     */
+<script>
+  const log = document.getElementById("log");
+  const statusEl = document.getElementById("status");
+  const crawl = document.getElementById("crawl");
+  const bars = [b1,b2,b3,b4,b5];
 
-    const screen = document.getElementById("screen");
+  const codes = ["NX-7C11","LB-0A9F","SKY-13DE","ITE-44B2","MX-9D07","CRC-2F18","CEN-0D33","NX-5A1C"];
+  const lines = [
+    ["accent", "PING market node…"],
+    ["muted",  "routing via ELITE SKYWAY relay"],
+    ["muted",  "compliance-layer: handshake required"],
+    ["accent", "HANDSHAKE → INIT"],
+    ["warn",   "SYNC FAIL (packet loss)"],
+    ["muted",  "retrying…"],
+    ["accent", "HANDSHAKE → INIT"],
+    ["warn",   "TEMPORARY DISCONNECT"],
+    ["muted",  "error reported to municipal layer (auto)"],
+  ];
 
-    // --- SPEED CONTROLS (these are the lines you’ll tweak) ---
-    const TYPE_MS = 80;          // typing speed (60–95 feels right)
-    const LINE_PAUSE_MS = 550;   // pause between lines
-    const BLOCK_PAUSE_MS = 1200; // pause between “sections”
-    // --------------------------------------------------------
+  function addLine(kind, text){
+    const d = document.createElement("div");
+    d.className = `line ${kind}`;
+    d.textContent = text;
+    log.appendChild(d);
+    // keep it from growing forever
+    if(log.children.length > 14) log.removeChild(log.firstChild);
+  }
 
-    const lines = [
-      { text: "[INIT] market-relay :: tunnel request queued", cls: "muted" },
-      { text: "[AUTH] keyring: BISAN//EXCHANGE//LOCAL", cls: "muted" },
-      { text: "[HANDSHAKE] establishing...", cls: "muted" },
+  function now(){
+    const dt = new Date();
+    const pad = n => String(n).padStart(2,"0");
+    return `${pad(dt.getHours())}:${pad(dt.getMinutes())}:${pad(dt.getSeconds())}`;
+  }
 
-      { pause: BLOCK_PAUSE_MS },
+  function setClock(){
+    document.getElementById("clock").textContent = now();
+  }
+  setInterval(setClock, 250);
+  setClock();
 
-      { text: "> ACCESS REQUEST: BISAN_EXCHANGE/market", cls: "" },
-      { text: "[TRACE] spoof route: cad-net → basin-node → easton relay", cls: "muted" },
-      { text: "[OK] cam lattice: cloaked", cls: "muted" },
-      { text: "[OK] inventory mirror: cached", cls: "muted" },
+  // staged boot sequence
+  let i = 0;
+  function boot(){
+    const [k, t] = lines[i % lines.length];
+    addLine(k, `[${now()}] ${t}`);
+    i++;
 
-      { pause: BLOCK_PAUSE_MS },
+    // status text
+    const phase = i % 9;
+    if(phase < 3) statusEl.textContent = "STATUS: LINKING…";
+    else if(phase < 6) statusEl.textContent = "STATUS: HANDSHAKE FAIL";
+    else statusEl.textContent = "STATUS: TEMPORARY DISCONNECT";
 
-      { text: "[WARN] market relay experiencing temporary disconnect", cls: "accent" },
-      { text: "ERROR: NX-41A7 // handshake drift beyond tolerance", cls: "accent" },
-      { text: "suggested action: hold position • do not refresh • await window", cls: "muted" },
+    // bars “signal”
+    const strength = Math.max(0, 5 - (phase >= 6 ? 4 : (phase >= 3 ? 2 : 1)));
+    bars.forEach((b, idx) => {
+      const on = idx < strength;
+      const h = on ? (8 + idx*4) : (4 + Math.random()*3);
+      b.style.height = `${h}px`;
+      b.style.background = on ? "rgba(159,179,216,.55)" : "rgba(159,179,216,.18)";
+    });
 
-      { pause: BLOCK_PAUSE_MS },
-
-      { text: "> REQUEST STATUS", cls: "" },
-      { text: "[RESPONSE] pending…", cls: "muted" },
-    ];
-
-    function addLineContainer(cls=""){
-      const p = document.createElement("p");
-      p.className = "line " + cls;
-      screen.appendChild(p);
-      return p;
+    // rotate error codes + occasional glitch
+    if(phase === 8 || phase === 4){
+      const code = codes[Math.floor(Math.random()*codes.length)];
+      crawl.textContent = `TEMPORARY DISCONNECT · ERROR: ${code} · RETRYING HANDSHAKE · MARKET NODE UNRESPONSIVE`;
+      crawl.classList.add("glitch");
+      setTimeout(()=>crawl.classList.remove("glitch"), 180);
     }
+  }
 
-    function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+  // start
+  addLine("muted", `[${now()}] request received`);
+  addLine("muted", `[${now()}] verifying route token…`);
+  setTimeout(()=>addLine("accent", `[${now()}] token accepted`), 450);
 
-    async function typeText(el, text){
-      // Slight variance so it feels human / machine-ish
-      for (let i = 0; i < text.length; i++){
-        el.textContent += text[i];
-        const jitter = Math.random() < 0.06 ? (TYPE_MS * 3) : 0;
-        await sleep(TYPE_MS + jitter);
-      }
-    }
-
-    async function run(){
-      screen.innerHTML = "";
-      // boot line w/ cursor
-      const boot = addLineContainer("muted");
-      boot.innerHTML = `<span class="prompt">└</span> session open<span class="cursor">▌</span>`;
-      await sleep(420);
-      boot.innerHTML = `<span class="prompt">└</span> session open`;
-
-      for (const item of lines){
-        if (item.pause){
-          await sleep(item.pause);
-          continue;
-        }
-        const el = addLineContainer(item.cls || "");
-        await typeText(el, item.text);
-        await sleep(LINE_PAUSE_MS);
-        // keep view pinned to bottom
-        screen.scrollTop = screen.scrollHeight;
-      }
-
-      // idle cursor at end
-      const end = addLineContainer("");
-      end.innerHTML = `<span class="prompt">></span><span class="cursor">▌</span>`;
-    }
-
-    run();
-
-    // OPTIONAL: subtle glitch pulse (very light)
-    // If you want more glitch, increase opacity changes or shorten interval.
-    setInterval(() => {
-      const fx = document.querySelector(".fx");
-      fx.style.opacity = (Math.random() * 0.08 + 0.14).toFixed(2);
-    }, 900);
-  </script>
+  setInterval(boot, 700);
+</script>
 </body>
 </html>
