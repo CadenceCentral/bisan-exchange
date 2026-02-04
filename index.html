@@ -36,7 +36,7 @@
       backdrop-filter: blur(2px) saturate(1.1);
     }
 
-    /* Subtle scanlines + noise */
+    /* Subtle scanlines */
     .fx{
       position: fixed; inset: 0;
       pointer-events: none;
@@ -84,14 +84,35 @@
       border-bottom: 1px solid rgba(120, 220, 255, 0.14);
       background: rgba(0,0,0,0.22);
     }
+
+    .lefthead{
+      display:flex;
+      align-items:center;
+      gap: 12px;
+      min-width: 0;
+    }
+
     .dots{ display:flex; gap:8px; }
     .dot{ width:10px; height:10px; border-radius: 50%; background: rgba(255,255,255,0.18); }
+
     .title{
       font-size: 12px;
       color: var(--muted);
       letter-spacing: 0.08em;
       text-transform: uppercase;
       user-select: none;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sig{
+      font-size: 11px;
+      color: rgba(214,255,255,0.55);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      user-select: none;
+      white-space: nowrap;
     }
 
     .screen{
@@ -103,12 +124,48 @@
 
     .line{ white-space: pre-wrap; margin: 0 0 6px 0; }
     .muted{ color: var(--muted); }
-    .accent{ color: var(--accent); }
+    .accent{ color: rgba(120, 220, 255, 0.95); }
+    .warn{ color: rgba(255, 120, 120, 0.85); }
 
-    .prompt{
-      display: inline-block;
-      color: rgba(120, 220, 255, 0.95);
-      margin-right: 8px;
+    .glitch{
+      text-shadow:
+        1px 0 rgba(255,0,0,.35),
+       -1px 0 rgba(0,255,255,.35);
+    }
+
+    .meta{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px 16px;
+      margin-bottom: 12px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .meta b{ color: rgba(214,255,255,0.78); font-weight: 600; }
+
+    .statusrow{
+      display:flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--muted);
+      gap: 16px;
+    }
+
+    .bars{
+      display:flex;
+      gap:4px;
+      align-items:flex-end;
+      flex: 0 0 auto;
+    }
+
+    .bars .bar{
+      width: 4px;
+      height: 6px;
+      background: rgba(159,179,216,.25);
+      border-radius: 2px;
+      transition: height .25s ease, background .25s ease;
     }
 
     /* Scrolling status strip */
@@ -123,37 +180,44 @@
       padding-left: 100%;
       white-space: nowrap;
       color: rgba(214, 255, 255, 0.68);
-      animation: scroll 14s linear infinite; /* <-- slow this (bigger = slower) */
+      animation: scroll 14s linear infinite;
     }
     @keyframes scroll {
       0% { transform: translateX(0); }
       100% { transform: translateX(-100%); }
     }
 
-    /* Cursor */
-    .cursor{
-      display:inline-block;
-      width: 10px;
-      margin-left: 3px;
-      opacity: 0.9;
-      animation: blink 1.8s steps(2, start) infinite; /* <-- slower blink */
+    .footer{
+      width: min(880px, 96vw);
+      margin-top: 14px;
+      font-size: 11px;
+      color: rgba(214,255,255,.45);
+      display:flex;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 0 6px;
+      user-select: none;
     }
-    @keyframes blink { to { opacity: 0; } }
   </style>
 </head>
 
 <body>
+  <div class="veil"></div>
+  <div class="fx"></div>
+
   <div class="wrap">
-    <div class="card">
-      <div class="topbar">
-        <div class="left">
-          <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
-          <div><strong>BISAN EXCHANGE</strong> / MARKET NODE</div>
+    <div class="term">
+      <div class="bar">
+        <div class="lefthead">
+          <div class="dots">
+            <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+          </div>
+          <div class="title"><strong>BISAN EXCHANGE</strong> / MARKET NODE</div>
         </div>
         <div class="sig">ELITE SKYWAY RELAY · ACTIVE</div>
       </div>
 
-      <div class="terminal">
+      <div class="screen">
         <div class="meta">
           <div><b>NODE</b> MX-LB/DOWNTOWN</div>
           <div><b>CHANNEL</b> INVENTORY</div>
@@ -161,18 +225,16 @@
           <div><b>TIME</b> <span id="clock"></span></div>
         </div>
 
-        <div class="screen">
-          <div class="log" id="log"></div>
+        <div class="log" id="log"></div>
 
-          <div class="statusrow">
-            <div id="status">STATUS: INITIALIZING…</div>
-            <div class="bars" aria-hidden="true">
-              <div class="bar" id="b1"></div>
-              <div class="bar" id="b2"></div>
-              <div class="bar" id="b3"></div>
-              <div class="bar" id="b4"></div>
-              <div class="bar" id="b5"></div>
-            </div>
+        <div class="statusrow">
+          <div id="status">STATUS: INITIALIZING…</div>
+          <div class="bars" aria-hidden="true">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
           </div>
         </div>
       </div>
@@ -192,9 +254,9 @@
   const log = document.getElementById("log");
   const statusEl = document.getElementById("status");
   const crawl = document.getElementById("crawl");
-  const bars = [b1,b2,b3,b4,b5];
 
   const codes = ["NX-7C11","LB-0A9F","SKY-13DE","ITE-44B2","MX-9D07","CRC-2F18","CEN-0D33","NX-5A1C"];
+
   const lines = [
     ["accent", "PING market node…"],
     ["muted",  "routing via ELITE SKYWAY relay"],
@@ -204,7 +266,7 @@
     ["muted",  "retrying…"],
     ["accent", "HANDSHAKE → INIT"],
     ["warn",   "TEMPORARY DISCONNECT"],
-    ["muted",  "error reported to municipal layer (auto)"],
+    ["muted",  "telemetry mirrored to civic layer (passive)"],
   ];
 
   function addLine(kind, text){
@@ -212,7 +274,6 @@
     d.className = `line ${kind}`;
     d.textContent = text;
     log.appendChild(d);
-    // keep it from growing forever
     if(log.children.length > 14) log.removeChild(log.firstChild);
   }
 
@@ -228,20 +289,19 @@
   setInterval(setClock, 250);
   setClock();
 
-  // staged boot sequence
+  const bars = Array.from(document.querySelectorAll(".bars .bar"));
+
   let i = 0;
   function boot(){
     const [k, t] = lines[i % lines.length];
     addLine(k, `[${now()}] ${t}`);
     i++;
 
-    // status text
     const phase = i % 9;
     if(phase < 3) statusEl.textContent = "STATUS: LINKING…";
     else if(phase < 6) statusEl.textContent = "STATUS: HANDSHAKE FAIL";
     else statusEl.textContent = "STATUS: TEMPORARY DISCONNECT";
 
-    // bars “signal”
     const strength = Math.max(0, 5 - (phase >= 6 ? 4 : (phase >= 3 ? 2 : 1)));
     bars.forEach((b, idx) => {
       const on = idx < strength;
@@ -250,7 +310,6 @@
       b.style.background = on ? "rgba(159,179,216,.55)" : "rgba(159,179,216,.18)";
     });
 
-    // rotate error codes + occasional glitch
     if(phase === 8 || phase === 4){
       const code = codes[Math.floor(Math.random()*codes.length)];
       crawl.textContent = `TEMPORARY DISCONNECT · ERROR: ${code} · RETRYING HANDSHAKE · MARKET NODE UNRESPONSIVE`;
@@ -268,3 +327,4 @@
 </script>
 </body>
 </html>
+
